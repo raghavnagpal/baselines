@@ -124,12 +124,40 @@ def log_params(params, logger=logger):
         logger.info('{}: {}'.format(key, params[key]))
 
 
+def goal_distance(goal_a, goal_b):
+    assert goal_a.shape == goal_b.shape
+    return np.linalg.norm(goal_a - goal_b, axis=-1)
+# GoalEnv methods
+# ----------------------------
+
+def custom_reward(goal_a, goal_b):
+    assert goal_a.shape == goal_b.shape
+    vec = np.abs(goal_a - goal_b)
+    vec = vec/np.linalg.norm(vec)
+    vec = vec[:,0]*1.0 + vec[:,1]*0.5 + vec[:,2]*0.1
+    return vec.astype(np.float32)
+
+def compute_reward( achieved_goal, goal, info):
+    # Compute distance between goal and the achieved goal.
+    reward_type = 'sparse'
+    distance_threshold = 0.05
+    d = goal_distance(achieved_goal, goal)
+    d_custom = custom_reward(achieved_goal, goal)
+    if reward_type == 'sparse':
+        return -(d > distance_threshold).astype(np.float32) - d_custom
+    else:
+        return -d
+
+
 def configure_her(params):
     env = cached_make_env(params['make_env'])
     env.reset()
 
     def reward_fun(ag_2, g, info):  # vectorized
-        return env.compute_reward(achieved_goal=ag_2, desired_goal=g, info=info)
+        # return env.compute_reward(achieved_goal=ag_2, desired_goal=g, info=info)
+        # jj = compute_reward(achieved_goal=ag_2, goal=g, info=info)
+        # jj1 = env.compute_reward(achieved_goal=ag_2, desired_goal=g, info=info)
+        return compute_reward(achieved_goal=ag_2, goal=g, info=info)
 
     # Prepare configuration for HER.
     her_params = {

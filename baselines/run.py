@@ -72,11 +72,18 @@ def train(args, extra_args):
             alg_kwargs['network'] = get_default_network(env_type)
 
     print('Training {} on {}:{} with arguments \n{}'.format(args.alg, env_type, env_id, alg_kwargs))
+    if args.save_path:
+        save_path = args.save_path+"_mod"
+        import os
+        os.makedirs(save_path)
+    else:
+        save_path = None
 
     model = learn(
         env=env,
         seed=seed,
         total_timesteps=total_timesteps,
+        save_path = save_path,
         **alg_kwargs
     )
 
@@ -155,6 +162,7 @@ def get_alg_module(alg, submodule=None):
     submodule = submodule or alg
     try:
         # first try to import the alg module from baselines
+        print("get alg module",'.'.join(['baselines', alg, submodule]))
         alg_module = import_module('.'.join(['baselines', alg, submodule]))
     except ImportError:
         # then from rl_algs
@@ -209,6 +217,8 @@ def main(args):
     if MPI is None or MPI.COMM_WORLD.Get_rank() == 0:
         rank = 0
         configure_logger(args.log_path)
+        if args.save_path is not None:
+            logger.configure(dir=args.save_path+'_log',format_strs=['stdout','log','csv','tensorboard'])
     else:
         rank = MPI.COMM_WORLD.Get_rank()
         configure_logger(args.log_path, format_strs=[])
