@@ -34,3 +34,9 @@ src
 .cache
 
 MUJOCO_LOG.TXT
+
+log/
+
+venv/
+baselines/her/data_fetch_random_100.npz
+

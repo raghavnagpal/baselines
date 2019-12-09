@@ -130,11 +130,26 @@ def goal_distance(goal_a, goal_b):
 # GoalEnv methods
 # ----------------------------
 
+def reward_alongaxis(vec):
+    #ex3
+    axis_threshold = 0.005
+    vec = np.abs(vec)
+    vec_map = (vec > axis_threshold).astype(np.float32)
+
+    # val = vec_map[:,0] * 3.0 + vec_map[:,2] * 2.0  +vec_map[:,2] * 1.0  #HERc
+    val = vec_map[:, 0] * 1.0 + vec_map[:, 1] * 1.1 + vec_map[:, 2] * 1.2
+    return val
+
+
+
 def custom_reward(goal_a, goal_b):
     assert goal_a.shape == goal_b.shape
     vec = np.abs(goal_a - goal_b)
     vec = vec/np.linalg.norm(vec)
-    vec = vec[:,0]*1.0 + vec[:,1]*0.5 + vec[:,2]*0.1
+    # vec = vec[:,0]*1.0 + vec[:,1]*0.5 + vec[:,2]*0.1 #ex1 hera
+    # vec = vec[:, 0] * 0.0 + vec[:, 1] * 1.0 + vec[:, 2] * 1.0   #ex2 herb
+
+    vec = reward_alongaxis(vec)
     return vec.astype(np.float32)
 
 def compute_reward( achieved_goal, goal, info):
