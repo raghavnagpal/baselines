@@ -237,7 +237,10 @@ def main(args):
         dones = np.zeros((1,))
 
         episode_rew = np.zeros(env.num_envs) if isinstance(env, VecEnv) else np.zeros(1)
+
         flag_custom_test = True
+        np_csv_data = []
+
         while True and (not flag_custom_test):
             if state is not None:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
@@ -247,15 +250,22 @@ def main(args):
             obs, rew, done, _ = env.step(actions)
             episode_rew += rew
             env.render()
-            print(obs, rew, done)
+            # print(obs, rew, done)
             done_any = done.any() if isinstance(done, np.ndarray) else done
             if done_any:
                 for i in np.nonzero(done)[0]:
                     print('episode_rew={}'.format(episode_rew[i]))
+                    # np_line = np.append( obs['desired_goal'][0],obs['observation'][0][3:6])
+                    # print(np_line)
+                    # np_csv_data.append(np_line)
+                    # np.savetxt("samples.csv", np_csv_data, delimiter=",")
+
                     episode_rew[i] = 0
 
         obs = env.reset(set_goal=[1.4907858 , 0.7001692 , 0.42469975], object_loc=[1.37461030e+00,  6.22625589e-01])
-        np_csv_data = []
+        setpoints = np.loadtxt("samples.csv",delimiter=",")
+        index = 0
+
         while True and flag_custom_test:
             if state is not None:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
@@ -270,20 +280,24 @@ def main(args):
 
             np_line = np.append(obs_old['achieved_goal'][0], obs_old['desired_goal'][0])
             np_line = np.append(np_line, obs_old['observation'][0])
-            print(obs_old['achieved_goal'][0], obs_old['desired_goal'][0], obs_old['observation'][0], rew, done)
-            print(np_line)
-            np_csv_data.append(np_line)
+            # print(obs_old['achieved_goal'][0], obs_old['desired_goal'][0], obs_old['observation'][0], rew, done)
+            # print(np_line)
+            # np_csv_data.append(np_line)
 
-            env.render()
+
             done_any = done.any() if isinstance(done, np.ndarray) else done
             if done_any:
                 for i in np.nonzero(done)[0]:
-                    print('episode_rew={}'.format(episode_rew[i]))
+                    print(index, 'episode_rew={}'.format(episode_rew[i]))
                     episode_rew[i] = 0
-                    np_csv_data = np.array(np_csv_data)
-                    np.savetxt("HER_ex3_cb.csv", np_csv_data, delimiter=",")
+                    # np_csv_data = np.array(np_csv_data)
+                    # np.savetxt("HER_ex3_cb.csv", np_csv_data, delimiter=",")
                     np_csv_data = []
-                    obs = env.reset(set_goal=[1.4907858-0.1 , 0.7001692 +0.2, 0.42469975+0.2], object_loc=[1.37461030e+00-0.1,  6.22625589e-01-0.1])
+                    # obs = env.reset(set_goal=[1.4907858-0.1 , 0.7001692 +0.2, 0.42469975+0.2], object_loc=[1.37461030e+00-0.1,  6.22625589e-01-0.1])
+                    obs = env.reset(set_goal=setpoints[index][0:3],
+                                    object_loc=setpoints[index][3:5])
+                    index+=1
+            env.render()
 
     env.close()
 
