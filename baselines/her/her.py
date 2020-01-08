@@ -123,6 +123,9 @@ def learn(*, network, env, total_timesteps,
         params['bc_loss'] = 1
     params.update(kwargs)
 
+    if 'reward_function' in kwargs:
+        params['reward_function'] = kwargs['reward_function']
+
     config.log_params(params, logger=logger)
 
     if num_cpu == 1:

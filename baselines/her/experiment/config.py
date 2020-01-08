@@ -142,22 +142,30 @@ def reward_alongaxis(vec):
 
 
 
-def custom_reward(goal_a, goal_b):
+def custom_reward(goal_a, goal_b,reward_function=None):
     assert goal_a.shape == goal_b.shape
     vec = np.abs(goal_a - goal_b)
     vec = vec/np.linalg.norm(vec)
-    # vec = vec[:,0]*1.0 + vec[:,1]*0.5 + vec[:,2]*0.1 #ex1 hera
-    # vec = vec[:, 0] * 0.0 + vec[:, 1] * 1.0 + vec[:, 2] * 1.0   #ex2 herb
 
-    vec = reward_alongaxis(vec)
+    if reward_function == 'Function1':
+        vec = vec[:,0]*1.0 + vec[:,1]*0.5 + vec[:,2]*0.1 #ex1 hera
+    elif reward_function == 'Function2':
+        vec = vec[:, 0] * 0.0 + vec[:, 1] * 1.0 + vec[:, 2] * 1.0   #ex2 herb
+    elif reward_function =='Function3':
+        vec = reward_alongaxis(vec)
+    else:
+        vec = vec*0.0
+
     return vec.astype(np.float32)
 
-def compute_reward( achieved_goal, goal, info):
+def compute_reward( achieved_goal, goal, info, reward_function=None):
     # Compute distance between goal and the achieved goal.
     reward_type = 'sparse'
     distance_threshold = 0.05
     d = goal_distance(achieved_goal, goal)
-    d_custom = custom_reward(achieved_goal, goal)
+    d_custom = custom_reward(achieved_goal, goal,reward_function)
+
+
     if reward_type == 'sparse':
         return -(d > distance_threshold).astype(np.float32) - d_custom
     else:
@@ -172,7 +180,11 @@ def configure_her(params):
         # return env.compute_reward(achieved_goal=ag_2, desired_goal=g, info=info)
         # jj = compute_reward(achieved_goal=ag_2, goal=g, info=info)
         # jj1 = env.compute_reward(achieved_goal=ag_2, desired_goal=g, info=info)
-        return compute_reward(achieved_goal=ag_2, goal=g, info=info)
+
+        if 'reward_function' in params:
+            return compute_reward(achieved_goal=ag_2, goal=g, info=info, reward_function=params['reward_function'])
+        else:
+            return env.compute_reward(achieved_goal=ag_2, desired_goal=g, info=info)
 
     # Prepare configuration for HER.
     her_params = {

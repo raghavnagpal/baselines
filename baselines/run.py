@@ -238,7 +238,7 @@ def main(args):
 
         episode_rew = np.zeros(env.num_envs) if isinstance(env, VecEnv) else np.zeros(1)
 
-        flag_custom_test = True
+        flag_custom_test = False
         np_csv_data = []
 
         while True and (not flag_custom_test):
